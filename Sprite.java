@@ -1,4 +1,3 @@
-
 import java.awt.Rectangle;
 
 public class Sprite {
@@ -24,34 +23,13 @@ public class Sprite {
 		
 	}
 	
-	public boolean isInWater(Water water) {
-	    return r.intersects(water.getRectangle());
-	}
-	
-	public class Water {
-	    private Rectangle r;
-
-	    public Water(int x, int y, int width, int height) {
-	        r = new Rectangle(x, y, width, height);
+	 public Rectangle getRectangle() {
+	        return new Rectangle(x, y, width, height);
 	    }
-
-	    public Rectangle getRectangle() {
-	        return r;
-	    }
-	}
-
-	
-	
-	
-	
-	
-	
-	
-	
 
 	//Getters and setters
 	public int getX() {
-		return x;
+		return this.x;
 	}
 	public void setX(int x) {
 		this.x = x;
@@ -60,7 +38,7 @@ public class Sprite {
 
 	
 	public int getY() {
-		return y;
+		return this.y;
 	}
 	public void setY(int y) {
 		this.y = y;
@@ -92,13 +70,4 @@ public class Sprite {
 	public void setImage(String image) {
 		this.image = image;
 	}
-	
-	public Rectangle getRectangle() {
-		return this.r;
-	}
-	
-	public void display() {
-		System.out.println("x,y: " + this.x + " "+ this.y);
-		System.out.println("width, height: " + this.width + " " + this.height);
-		System.out.println("image: " + this.image);
-}}
+}
