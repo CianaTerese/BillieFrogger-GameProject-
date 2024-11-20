@@ -1,122 +1,192 @@
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
-import java.awt.Image;
 import java.awt.Rectangle;
 
 public class Cars extends Sprite implements Runnable {
     private int x, y, width, height, speed;
-    private boolean movingLeft;
-    private JLabel carLabel;
+    private boolean movingLeft; 
+    private JButton startButton, visibilityButton;
+    private Boolean visible, moving; 
+    private Thread t;
     
-    private boolean moving;
- 
-    
-    //Adding Character2
-    private JLabel character2Label;
-    
+    //Car 
+    private JLabel carLabel; 
+
     //Adding Character1
     private Character1 character1;
     private JLabel character1Label;
+    
+    //test
+    private GamePrep gamePrep; 
 
-    public Cars(int x, int y, int width, int height, String imageName, int speed, boolean movingLeft) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;  
-        this.speed = speed;
-        this.movingLeft = movingLeft;
-        
-        this.moving = true; 
-
-        carLabel = new JLabel();
-        ImageIcon carIcon = new ImageIcon(getClass().getResource("/images/" + imageName));
-        Image carImage = carIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        carLabel.setIcon(new ImageIcon(carImage));
-        carLabel.setSize(width, height);
-        carLabel.setLocation(x, y);
+    
+    public void setCharacter1(Character1 temp) {
+    	this.character1 = temp;
+    	this.character1Label = temp.getLabel();  
+	}
+    public void setcharacter1Label(JLabel temp) {
+		this.character1Label = temp;
+	}
+ 
+    public void setGamePrep(GamePrep gamePrep) {
+        this.gamePrep = gamePrep;
+    }
+    public void setStartButton(JButton temp) {
+    	  this.startButton = temp;
     }
 
-    public void setCharacter1(Character1 temp) {
-		character1 = temp;
-	}
-    public void setCharacter1Label(JLabel temp) {
-		character1Label = temp;
-	}
-	public void setCharacter2Label(JLabel temp) {
-		character2Label = temp;
-	}
+    public void setVisibilityButton(JButton temp) {
+        visibilityButton = temp;
+    }
+
+    public void setVisible(Boolean visible) {
+        this.visible = visible;
+    }
+    
+    public Boolean getVisible() {
+        return visible;
+    }
+
+    public Boolean getMoving() {
+        return moving;
+    }
+
+    public void setMoving(Boolean moving) {
+        this.moving = moving;
+    }
+    public Cars() {
+ 		super();
+ 		this.moving = false;
+ 		this.visible = true; 
+ 	}
+     public Cars(int x, int y, int width, int height, String imageName, int speed, boolean movingLeft) {
+     	super(x,y,height,width,imageName);
+         this.x = x;
+         this.y = y;
+         this.width = width;
+         this.height = height;
+         this.visible = true;
+         this.moving = false; 
+         this.speed = speed;
+         this.image = imageName;
+         this.movingLeft = movingLeft;
+        
+         this.carLabel = new JLabel(new ImageIcon(getClass().getResource("images/" + image)));
+         this.carLabel.setSize(width, height);  
+         this.carLabel.setLocation(x, y);
+         
+         
+         this.r = new Rectangle(x, y, width, height); 
+     }
+     
+     public JLabel getcarLabel() {
+         return carLabel;
+     }
+     public void setcarLabel(JLabel Label) {
+     	this.carLabel = Label;
+     }
+     
+    public void hide() {
+        this.visible = false;
+        carLabel.setVisible(false); 
+        visibilityButton.setText("Show");
+    }
+
+    public void show() {
+        this.visible = true;
+        carLabel.setVisible(true);
+        visibilityButton.setText("Hide");
+    }
+    
+    //test
+
+    public void startThread() {
+        if (!this.moving) {
+            this.moving = true;
+            if (startButton != null) {
+                startButton.setText("Stop");
+            }
+            setImage("BlueCar.png");
+            if (carLabel != null) {
+                carLabel.setIcon(new ImageIcon(getClass().getResource("images/" + this.getImage())));
+            }
+
+            System.out.println("Start thread");
+            t = new Thread(this, "Car thread");
+            t.start();
+        }
+    }
+
+    public void stopThread() {
+        if (this.moving) {
+            this.moving = false;   
+            //test
+            if (startButton != null) {
+                startButton.setText("Start");
+            }
+            if (t != null) {
+            //
+               // startButton.setText("Start");        
+               t.interrupt();
+            }}
+        }
     
     public void move() {
-    	 if (moving) {
-    	if (movingLeft) {
-            x -= speed; 
-            if (x + width < 0) {  
-                x = GameProperties.SCREEN_WIDTH;
+        if (movingLeft) {
+            x -= speed;
+            if (x + width < 0) {
+                x = GameProperties.SCREEN_WIDTH; 
             }
         } else {
-            x += speed; 
+            x += speed;
             if (x > GameProperties.SCREEN_WIDTH) {
-                x = -width;
+                x = -width; 
             }
         }
         carLabel.setLocation(x, y); 
+        r.setLocation(x, y);
     }
-    }
-
+    
+    //test
     @Override
     public void run() {
-        while (true) {
-            move(); 
+        while (this.moving) {
+            if (Thread.interrupted()) {
+                break; 
+            }
+
+            move();
+            //test for car label
+            carLabel.setLocation(x, y);
+            //
+            detectCollision();
+
             try {
-                Thread.sleep(50);  
+                Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+               
+                Thread.currentThread().interrupt(); 
+                break;
             }
         }
+        System.out.println("Thread stopped.");
     }
-    
-    public void detectCollision() {
-    	if(this.r.intersects( character1.getRectangle() ) ) {
-            System.out.println("Collision detected! Car hit Billie.");
-            this.stopMoving();
+
+    private void detectCollision() {
+        Rectangle carRect = getRectangle(); 
+        Rectangle billieRect = character1.getRectangle();
+        
+        if (carRect.intersects(billieRect)) {
+            System.out.println("BOOM! Car hit Billie!");
             
-            this.setImage("Billie.png");
-            character1.setImage("GreyBillie.png");
-           
-            
-            
-            character1Label.setIcon(new ImageIcon(getClass().getResource("images/" + character1.getImage())));
-			character2Label.setIcon(new ImageIcon (getClass().getResource("images/" +this.getImage())));
+            stopThread();       
+            gamePrep.endGame(false); 
         }
-    }
-    
-    
-
-    private void stopMoving() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public JLabel getCarLabel() {
-        return carLabel;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
     }
 
     public Rectangle getRectangle() {
         return new Rectangle(x, y, width, height);  
     }
 }
-
-
-
-
-
-
 
