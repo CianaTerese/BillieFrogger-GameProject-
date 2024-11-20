@@ -1,25 +1,33 @@
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
+import java.awt.Image;
 import java.awt.Rectangle;
 
-public class Cars extends Sprite implements Runnable {
+public class Logs extends Sprite implements Runnable {
     private int x, y, width, height, speed;
-    private boolean movingLeft; 
-    private JButton startButton, visibilityButton;
-    private Boolean visible, moving; 
-    private Thread t;
-    
-    //Car 
-    private JLabel carLabel; 
-
-    //Adding Character1
+    private boolean movingLeft;  
+    private JLabel logLabel;
+    private Rectangle r;
     private Character1 character1;
     private JLabel character1Label;
+    private GamePrep gamePrep;
     
-    //test
-    private GamePrep gamePrep; 
 
+    public Logs(int x, int y, int width, int height, String imageName, int speed, boolean movingLeft) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.speed = speed;
+        this.movingLeft = movingLeft; 
+        this.logLabel = new JLabel();
+        
+        logLabel = new JLabel(new ImageIcon(getClass().getResource("images/" + imageName)));
+        logLabel.setSize(width, height);
+        logLabel.setLocation(x, y);
+        
+        this.r = new Rectangle(x, y, width, height);
+    }
     
     public void setCharacter1(Character1 temp) {
     	this.character1 = temp;
@@ -27,111 +35,33 @@ public class Cars extends Sprite implements Runnable {
 	}
     public void setcharacter1Label(JLabel temp) {
 		this.character1Label = temp;
-	}
- 
-    public void setGamePrep(GamePrep gamePrep) {
-        this.gamePrep = gamePrep;
-    }
-    public void setStartButton(JButton temp) {
-    	  this.startButton = temp;
-    }
-
-    public void setVisibilityButton(JButton temp) {
-        visibilityButton = temp;
-    }
-
-    public void setVisible(Boolean visible) {
-        this.visible = visible;
-    }
-    
-    public Boolean getVisible() {
-        return visible;
-    }
-
-    public Boolean getMoving() {
-        return moving;
-    }
-
-    public void setMoving(Boolean moving) {
-        this.moving = moving;
-    }
-    public Cars() {
- 		super();
- 		this.moving = false;
- 		this.visible = true; 
- 	}
-     public Cars(int x, int y, int width, int height, String imageName, int speed, boolean movingLeft) {
-     	super(x,y,height,width,imageName);
-         this.x = x;
-         this.y = y;
-         this.width = width;
-         this.height = height;
-         this.visible = true;
-         this.moving = false; 
-         this.speed = speed;
-         this.image = imageName;
-         this.movingLeft = movingLeft;
-        
-         this.carLabel = new JLabel(new ImageIcon(getClass().getResource("images/" + image)));
-         this.carLabel.setSize(width, height);  
-         this.carLabel.setLocation(x, y);
-         
-         
-         this.r = new Rectangle(x, y, width, height); 
-     }
-     
-     public JLabel getcarLabel() {
-         return carLabel;
-     }
-     public void setcarLabel(JLabel Label) {
-     	this.carLabel = Label;
-     }
-     
-    public void hide() {
-        this.visible = false;
-        carLabel.setVisible(false); 
-        visibilityButton.setText("Show");
-    }
-
-    public void show() {
-        this.visible = true;
-        carLabel.setVisible(true);
-        visibilityButton.setText("Hide");
-    }
-    
-    //test
-
+	}    
+	    
+	public JLabel getCharacter1Label() {
+		return character1Label; }
+	
     public void startThread() {
-        if (!this.moving) {
-            this.moving = true;
-            if (startButton != null) {
-                startButton.setText("Stop");
-            }
-            setImage("BlueCar.png");
-            if (carLabel != null) {
-                carLabel.setIcon(new ImageIcon(getClass().getResource("images/" + this.getImage())));
-            }
-
-            System.out.println("Start thread");
-            t = new Thread(this, "Car thread");
-            t.start();
-        }
+        Thread t = new Thread(this, "Log thread");
+        t.start(); 
     }
 
     public void stopThread() {
-        if (this.moving) {
-            this.moving = false;   
-            //test
-            if (startButton != null) {
-                startButton.setText("Start");
-            }
-            if (t != null) {
-            //
-               // startButton.setText("Start");        
-               t.interrupt();
-            }}
-        }
     
+    }
+    
+    public void setGamePrep(GamePrep gamePrep) {
+        this.gamePrep = gamePrep;
+    }
+    
+
+    public Rectangle getRectangle() {
+        return r;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
     public void move() {
         if (movingLeft) {
             x -= speed;
@@ -144,49 +74,43 @@ public class Cars extends Sprite implements Runnable {
                 x = -width; 
             }
         }
-        carLabel.setLocation(x, y); 
+        logLabel.setLocation(x, y); 
         r.setLocation(x, y);
     }
+
+    public JLabel getLogLabel() {
+        return logLabel;
+    }
     
-    //test
+    public void detectCollision() {
+    	if (this.r.intersects(character1.getRectangle())) {
+    		
+    		character1.setX(x);
+    		character1Label.setLocation(this.x , this.y);  
+    	}
+    	
+    }
     @Override
     public void run() {
-        while (this.moving) {
-            if (Thread.interrupted()) {
-                break; 
-            }
-
-            move();
-            //test for car label
-            carLabel.setLocation(x, y);
-            //
-            detectCollision();
-
+        while (true) {
             try {
-                Thread.sleep(100);
+                move(); 
+               detectCollision();
+               if (character1.isOnLog()) {
+                   character1Label.setLocation(character1.getX(), character1.getY());
+               }
+                Thread.sleep(100); 
             } catch (InterruptedException e) {
-               
-                Thread.currentThread().interrupt(); 
-                break;
+                e.printStackTrace();
             }
         }
-        System.out.println("Thread stopped.");
     }
 
-    private void detectCollision() {
-        Rectangle carRect = getRectangle(); 
-        Rectangle billieRect = character1.getRectangle();
-        
-        if (carRect.intersects(billieRect)) {
-            System.out.println("BOOM! Car hit Billie!");
-            
-            stopThread();       
-            gamePrep.endGame(false); 
-        }
+    public int getHeight() {
+        return height;
     }
 
-    public Rectangle getRectangle() {
-        return new Rectangle(x, y, width, height);  
+    public void setHeight(int height) {
+        this.height = height;
     }
 }
-
